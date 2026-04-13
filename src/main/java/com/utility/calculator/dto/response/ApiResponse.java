@@ -1,0 +1,8 @@
+package com.utility.calculator.dto.response;
+
+public record ApiResponse<T>(
+        String status,
+        T data
+) {
+}
+

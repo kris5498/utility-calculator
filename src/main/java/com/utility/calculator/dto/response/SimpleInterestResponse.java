@@ -1,4 +1,9 @@
 package com.utility.calculator.dto.response;
 
-public record SimpleInterestResponse() {
+import java.math.BigDecimal;
+
+public record SimpleInterestResponse(
+        BigDecimal interest,
+        BigDecimal totalAmount
+) {
 }
