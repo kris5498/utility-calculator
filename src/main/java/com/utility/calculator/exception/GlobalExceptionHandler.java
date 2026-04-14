@@ -30,99 +30,111 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<ErrorResponse> handleInvalidInputException(InvalidInputException ex, HttpServletRequest request) {
-        String traceId = getOrCreateTraceId();
-        LOGGER.warn("traceId={}, code={}, message={}", traceId, ex.getErrorCode(), ex.getMessage());
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
+        LOGGER.warn(ApiConstants.LOG_MSG_ERROR_CODE_MESSAGE, traceId, correlationId, ex.getErrorCode(), ex.getMessage());
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ex.getErrorCode(),
                 List.of(ex.getMessage()),
                 request.getRequestURI(),
                 request.getMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex, HttpServletRequest request) {
-        String traceId = getOrCreateTraceId();
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> error.getField() + ApiConstants.FIELD_MESSAGE_SEPARATOR + error.getDefaultMessage())
                 .collect(Collectors.toList());
-        LOGGER.warn("traceId={}, Request validation failed: {}", traceId, String.join(", ", errors));
+        LOGGER.warn(ApiConstants.LOG_MSG_REQUEST_VALIDATION_FAILED, traceId, correlationId, String.join(ApiConstants.LIST_DELIMITER_COMMA_SPACE, errors));
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ErrorConstants.INVALID_INPUT,
                 errors,
                 request.getRequestURI(),
                 request.getMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex, HttpServletRequest request) {
-        String traceId = getOrCreateTraceId();
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
         List<String> errors = ex.getConstraintViolations()
                 .stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .map(violation -> violation.getPropertyPath() + ApiConstants.FIELD_MESSAGE_SEPARATOR + violation.getMessage())
                 .collect(Collectors.toList());
-        LOGGER.warn("traceId={}, Constraint validation failed: {}", traceId, String.join(", ", errors));
+        LOGGER.warn(ApiConstants.LOG_MSG_CONSTRAINT_VALIDATION_FAILED, traceId, correlationId, String.join(ApiConstants.LIST_DELIMITER_COMMA_SPACE, errors));
         return buildErrorResponse(
                 HttpStatus.BAD_REQUEST,
                 ErrorConstants.INVALID_INPUT,
                 errors,
                 request.getRequestURI(),
                 request.getMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
-        String traceId = getOrCreateTraceId();
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
         String allowedMethods = ex.getSupportedMethods() == null
-                ? "[]"
+                ? ApiConstants.EMPTY_SUPPORTED_METHODS
                 : Arrays.toString(ex.getSupportedMethods());
-        String methodNotAllowedMessage = ErrorConstants.METHOD_NOT_ALLOWED_MESSAGE + ". "
+        String methodNotAllowedMessage = ErrorConstants.METHOD_NOT_ALLOWED_MESSAGE + ApiConstants.MESSAGE_SEPARATOR_DOT_SPACE
                 + String.format(ErrorConstants.ALLOWED_METHODS_MESSAGE, allowedMethods);
-        LOGGER.warn("traceId={}, Method not allowed: {}", traceId, ex.getMessage());
+        LOGGER.warn(ApiConstants.LOG_MSG_METHOD_NOT_ALLOWED, traceId, correlationId, ex.getMessage());
         return buildErrorResponse(
                 HttpStatus.METHOD_NOT_ALLOWED,
                 ErrorConstants.METHOD_NOT_ALLOWED,
                 List.of(methodNotAllowedMessage),
                 request.getRequestURI(),
                 request.getMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NoHandlerFoundException ex) {
-        String traceId = getOrCreateTraceId();
-        LOGGER.warn("traceId={}, API not found: {}", traceId, ex.getRequestURL());
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
+        LOGGER.warn(ApiConstants.LOG_MSG_API_NOT_FOUND, traceId, correlationId, ex.getRequestURL());
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,
                 ErrorConstants.RESOURCE_NOT_FOUND,
                 List.of(ErrorConstants.RESOURCE_NOT_FOUND_MESSAGE),
                 ex.getRequestURL(),
                 ex.getHttpMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleException(Exception ex, HttpServletRequest request) {
-        String traceId = getOrCreateTraceId();
-        LOGGER.error("traceId={}, Unhandled exception", traceId, ex);
+        String traceId = getOrCreateContextValue(ApiConstants.TRACE_ID_KEY);
+        String correlationId = getOrCreateContextValue(ApiConstants.CORRELATION_ID_KEY);
+        LOGGER.error(ApiConstants.LOG_MSG_UNHANDLED_EXCEPTION, traceId, correlationId, ex);
         return buildErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 ErrorConstants.INTERNAL_ERROR,
                 List.of(ErrorConstants.INTERNAL_SERVER_ERROR),
                 request.getRequestURI(),
                 request.getMethod(),
-                traceId
+                traceId,
+                correlationId
         );
     }
 
@@ -132,7 +144,8 @@ public class GlobalExceptionHandler {
             List<String> errors,
             String path,
             String method,
-            String traceId
+            String traceId,
+            String correlationId
     ) {
         ErrorResponse body = new ErrorResponse(
                 OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
@@ -140,6 +153,7 @@ public class GlobalExceptionHandler {
                 status.getReasonPhrase(),
                 errorCode,
                 traceId,
+                correlationId,
                 path,
                 method,
                 errors
@@ -147,11 +161,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
-    private String getOrCreateTraceId() {
-        String traceId = MDC.get(ApiConstants.TRACE_ID_KEY);
-        if (traceId == null || traceId.isBlank()) {
-            traceId = UUID.randomUUID().toString();
+    private String getOrCreateContextValue(String key) {
+        String value = MDC.get(key);
+        if (value == null || value.isBlank()) {
+            value = UUID.randomUUID().toString();
         }
-        return traceId;
+        return value;
     }
 }

@@ -5,41 +5,48 @@ import com.utility.calculator.dto.request.SimpleInterestRequest;
 import com.utility.calculator.dto.response.SimpleInterestResponse;
 import com.utility.calculator.service.InterestService;
 import com.utility.calculator.util.InterestCalculatorUtil;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Slf4j
 @Service
 public class InterestServiceImpl implements InterestService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InterestServiceImpl.class);
 
     @Override
     public SimpleInterestResponse calculateSimpleInterest(SimpleInterestRequest request) {
         final long startTimeMs = System.currentTimeMillis();
-        final String traceId = UUID.randomUUID().toString();
-        MDC.put(ApiConstants.TRACE_ID_KEY, traceId);
+        final String traceId = getOrCreateMdcValue(ApiConstants.TRACE_ID_KEY);
+        final String correlationId = getOrCreateMdcValue(ApiConstants.CORRELATION_ID_KEY);
 
-        try {
-            log.info("traceId={}, Simple interest calculation started", traceId);
+        LOGGER.info(ApiConstants.LOG_MSG_SIMPLE_INTEREST_STARTED, traceId, correlationId);
 
-            final BigDecimal interest = InterestCalculatorUtil.calculateSimpleInterest(
-                    request.principal(),
-                    request.rate(),
-                    request.time()
-            );
-            final BigDecimal totalAmount = request.principal().add(interest);
+        final BigDecimal interest = InterestCalculatorUtil.calculateSimpleInterest(
+                request.principal(),
+                request.rate(),
+                request.time()
+        );
+        final BigDecimal totalAmount = request.principal().add(interest);
 
-            log.info(
-                    "traceId={}, Simple interest calculation completed: durationMs={}",
-                    traceId,
-                    System.currentTimeMillis() - startTimeMs
-            );
-            return new SimpleInterestResponse(interest, totalAmount);
-        } finally {
-            MDC.remove(ApiConstants.TRACE_ID_KEY);
+        LOGGER.info(
+                ApiConstants.LOG_MSG_SIMPLE_INTEREST_COMPLETED,
+                traceId,
+                correlationId,
+                System.currentTimeMillis() - startTimeMs
+        );
+        return new SimpleInterestResponse(interest, totalAmount);
+    }
+
+    private String getOrCreateMdcValue(String key) {
+        String value = MDC.get(key);
+        if (value == null || value.isBlank()) {
+            return UUID.randomUUID().toString();
         }
+        return value;
     }
 }

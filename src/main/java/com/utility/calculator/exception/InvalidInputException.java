@@ -1,9 +1,7 @@
 package com.utility.calculator.exception;
 
 import com.utility.calculator.constants.ErrorConstants;
-import lombok.Getter;
 
-@Getter
 public class InvalidInputException extends RuntimeException {
 
     private final String errorCode;
@@ -22,4 +20,7 @@ public class InvalidInputException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
+    public String getErrorCode() {
+        return errorCode;
+    }
 }

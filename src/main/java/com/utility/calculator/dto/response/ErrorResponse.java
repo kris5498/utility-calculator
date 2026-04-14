@@ -8,6 +8,7 @@ public record ErrorResponse(
         String error,
         String errorCode,
         String traceId,
+        String correlationId,
         String path,
         String method,
         List<String> errors
