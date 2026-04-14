@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: commonHead(${ui.uiSimpleHeading})}"></head>
+<body>
+<div th:replace="~{fragments :: pageHeader(${ui.uiSimpleHeading})}"></div>
+
+<form th:action="@{${ui.uiSimpleInterestPath}}" method="post" class="simple-interest-form"
+      th:attr="data-selected-mode=${selectedTimeInputMode}">
+    <label th:for="${ui.requestParamPrincipal}"
+           th:text="${ui.uiLabelPrincipal}">Principal</label>
+    <input type="number" step="any"
+           th:id="${ui.requestParamPrincipal}"
+           th:name="${ui.requestParamPrincipal}"
+           th:value="${inputPrincipal}" required>
+
+    <label th:for="${ui.requestParamRate}"
+           th:text="${ui.uiLabelRate}">Rate (%)</label>
+    <input type="number" step="any"
+           th:id="${ui.requestParamRate}"
+           th:name="${ui.requestParamRate}"
+           th:value="${inputRate}" required>
+
+    <label th:for="${ui.requestParamTimeInputMode}"
+           th:text="${ui.uiLabelTimeInputMode}">Time Input Format</label>
+    <select class="time-input-select js-time-mode-select"
+            th:id="${ui.requestParamTimeInputMode}"
+            th:name="${ui.requestParamTimeInputMode}">
+        <option th:value="${ui.timeInputModeDaysOnly}"
+                th:selected="${selectedTimeInputMode == ui.timeInputModeDaysOnly}"
+                th:text="${ui.uiTimeOptionDaysOnly}">Only days</option>
+        <option th:value="${ui.timeInputModeDaysMonthsYears}"
+                th:selected="${selectedTimeInputMode == ui.timeInputModeDaysMonthsYears}"
+                th:text="${ui.uiTimeOptionDmy}">Days + Months + Years</option>
+        <option th:value="${ui.timeInputModeMonthsOnly}"
+                th:selected="${selectedTimeInputMode == ui.timeInputModeMonthsOnly}"
+                th:text="${ui.uiTimeOptionMonthsOnly}">Only months</option>
+        <option th:value="${ui.timeInputModeYearsOnly}"
+                th:selected="${selectedTimeInputMode == ui.timeInputModeYearsOnly}"
+                th:text="${ui.uiTimeOptionYearsOnly}">Only years</option>
+    </select>
+
+    <div class="time-input-group js-time-group" th:attr="data-mode=${ui.timeInputModeDaysOnly}">
+        <label th:for="${ui.requestParamTimeDaysOnly}" th:text="${ui.uiLabelDaysOnly}">Days</label>
+        <input type="number" step="1" min="0" th:id="${ui.requestParamTimeDaysOnly}" th:name="${ui.requestParamTimeDaysOnly}" th:value="${inputTimeDaysOnly}">
+    </div>
+
+    <div class="time-input-group js-time-group" th:attr="data-mode=${ui.timeInputModeMonthsOnly}">
+        <label th:for="${ui.requestParamTimeMonthsOnly}" th:text="${ui.uiLabelMonthsOnly}">Months</label>
+        <input type="number" step="1" min="0" th:id="${ui.requestParamTimeMonthsOnly}" th:name="${ui.requestParamTimeMonthsOnly}" th:value="${inputTimeMonthsOnly}">
+    </div>
+
+    <div class="time-input-group js-time-group" th:attr="data-mode=${ui.timeInputModeYearsOnly}">
+        <label th:for="${ui.requestParamTimeYearsOnly}" th:text="${ui.uiLabelYearsOnly}">Years</label>
+        <input type="number" step="any" min="0" th:id="${ui.requestParamTimeYearsOnly}" th:name="${ui.requestParamTimeYearsOnly}" th:value="${inputTimeYearsOnly}">
+    </div>
+
+    <div class="time-input-group js-time-group" th:attr="data-mode=${ui.timeInputModeDaysMonthsYears}">
+        <label th:for="${ui.requestParamTimeDmyDays}" th:text="${ui.uiLabelDmyDays}">Days (max 31)</label>
+        <input type="number" step="1" min="0" max="31" th:id="${ui.requestParamTimeDmyDays}" th:name="${ui.requestParamTimeDmyDays}" th:value="${inputTimeDmyDays}">
+
+        <label th:for="${ui.requestParamTimeDmyMonths}" th:text="${ui.uiLabelDmyMonths}">Months (max 12)</label>
+        <input type="number" step="1" min="0" max="12" th:id="${ui.requestParamTimeDmyMonths}" th:name="${ui.requestParamTimeDmyMonths}" th:value="${inputTimeDmyMonths}">
+
+        <label th:for="${ui.requestParamTimeDmyYears}" th:text="${ui.uiLabelDmyYears}">Years</label>
+        <input type="number" step="any" min="0" th:id="${ui.requestParamTimeDmyYears}" th:name="${ui.requestParamTimeDmyYears}" th:value="${inputTimeDmyYears}">
+    </div>
+
+    <p class="js-time-note" th:attr="data-mode=${ui.timeInputModeDaysOnly}" th:text="${ui.uiTimeNoteDaysOnly}">Enter the number of days.</p>
+    <p class="js-time-note" th:attr="data-mode=${ui.timeInputModeMonthsOnly}" th:text="${ui.uiTimeNoteMonthsOnly}">Enter the number of months.</p>
+    <p class="js-time-note" th:attr="data-mode=${ui.timeInputModeYearsOnly}" th:text="${ui.uiTimeNoteYearsOnly}">Enter the number of years.</p>
+    <p class="js-time-note" th:attr="data-mode=${ui.timeInputModeDaysMonthsYears}" th:text="${ui.uiTimeNoteDmy}">For Days + Months + Years, enter up to 31 days and up to 12 months.</p>
+
+    <div class="button-row">
+        <button type="reset" class="secondary-button button-left" th:text="${ui.uiButtonReset}">Reset</button>
+        <button type="submit" class="button-right" th:text="${ui.uiButtonCalculate}">Calculate</button>
+    </div>
+</form>
+
+<p class="js-error-message" th:if="${error != null}" th:text="${error}">Invalid numeric input. Please enter valid numbers.</p>
+
+<div class="js-result-container" th:if="${result != null}">
+    <h2 th:text="${ui.uiResultHeading}">Calculation Result</h2>
+    <p>
+        <span th:text="${ui.uiResultInterest}">Interest</span>
+        : <span th:text="${result.interest}">0</span>
+    </p>
+    <p>
+        <span th:text="${ui.uiResultTotalAmount}">Total Amount</span>
+        : <span th:text="${result.totalAmount}">0</span>
+    </p>
+</div>
+
+<a th:href="@{${ui.uiIndexPath}}"
+   th:text="${ui.uiLinkHome}">Back to Home</a>
+
+<script th:src="@{${ui.uiSimpleScriptPath}}"></script>
+</body>
+</html>

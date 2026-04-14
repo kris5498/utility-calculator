@@ -1,0 +1,111 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #f6f8fb;
+    color: #1f2937;
+}
+
+body {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px;
+    line-height: 1.5;
+}
+
+h1,
+h2 {
+    margin: 0 0 16px;
+}
+
+p,
+a,
+label,
+button,
+input,
+select {
+    font-size: 1rem;
+}
+
+form {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+input,
+select {
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+}
+
+.time-input-select {
+    width: 24rem;
+    max-width: 100%;
+}
+
+.time-input-group,
+.js-time-note {
+    display: none;
+}
+
+.time-input-group.active {
+    display: grid;
+    gap: 10px;
+}
+
+.js-time-note.active {
+    display: block;
+    margin: 0;
+}
+
+.button-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+}
+
+.button-left {
+    justify-self: center;
+}
+
+.button-right {
+    justify-self: center;
+}
+
+button {
+    width: fit-content;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.secondary-button {
+    background: #6b7280;
+}
+
+.secondary-button:hover {
+    background: #4b5563;
+}
+
+a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

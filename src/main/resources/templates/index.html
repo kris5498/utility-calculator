@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: commonHead(${ui.uiTitle})}"></head>
+<body>
+<div th:replace="~{fragments :: pageHeader(${ui.uiHomeHeading})}"></div>
+<p th:text="${ui.uiHomeSubtitle}">Use the simple interest tool to calculate interest and total amount.</p>
+<a th:href="@{${ui.uiSimpleInterestPath}}"
+   th:text="${ui.uiNavSimpleInterest}">Open Simple Interest Calculator</a>
+</body>
+</html>
